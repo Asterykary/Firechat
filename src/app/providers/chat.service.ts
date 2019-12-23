@@ -3,6 +3,8 @@ import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/fires
 import { Mensaje } from '../interface/mensaje.interface';
 import { map} from 'rxjs/operators';
 
+import { AngularFireAuth } from 'angularfire2/auth';
+import * as firebase from 'firebase/app';
 
 
 @Injectable()
@@ -11,8 +13,28 @@ export class ChatService {
   private itemsCollection: AngularFirestoreCollection;
 
   public chats: Mensaje[] = [];
+  public usuario: any = {};
 
-  constructor(private afs: AngularFirestore) { }
+  constructor(private afs: AngularFirestore,
+              private afAuth: AngularFireAuth) { 
+
+  this.afAuth.authState.subscribe(user => {
+    if(!user){
+      return;
+    }
+    this.usuario.nombre = user.displayName;
+    this.usuario.uid = user.uid;
+  });
+              }
+
+  login(proveedor: string) {
+    this.afAuth.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+
+  }
+
+  logout() {
+    this.afAuth.auth.signOut();
+  }
 
   cargarMensajes() {
     this.itemsCollection = this.afs.collection<Mensaje>
